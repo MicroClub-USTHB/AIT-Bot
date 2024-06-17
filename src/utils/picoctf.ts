@@ -1,13 +1,7 @@
 import axios from 'axios';
 import fs from 'fs/promises';
 import path from 'path';
-/*import { config } from 'dotenv';
 
-config({
-  path: '../../.env'
-});*/
-
-console.log(process.env.PICOCTF_USERNAME);
 class PicoCTF {
   private static async getLoginCookie(): Promise<string | null> {
     const headers = await axios
@@ -85,5 +79,4 @@ class PicoCTF {
     return leaderboard;
   }
 }
-//PicoCTF.getLeaderboard().then(console.log).catch(console.error);
 export { PicoCTF };

@@ -1,4 +1,4 @@
-import { ChannelType, SlashCommandBuilder, Collection, EmbedBuilder } from 'discord.js';
+import { ChannelType, SlashCommandBuilder, Collection, EmbedBuilder, AttachmentBuilder } from 'discord.js';
 import { Command } from '../../@types/command';
 import { CommandTypes } from '../../@types/enums';
 import { ChannelPresenceList, MemberPresenceData } from '../../@types/client';
@@ -85,7 +85,13 @@ const command: Command = {
         memberData.leftTimes++;
       }
 
+      channelList.members.sort((a, b) => b.totalTime - a.totalTime || b.joinedTimes - a.joinedTimes);
+
       const presenceTime = moment.duration(endTime.getTime() - channelList.startTime.getTime()).humanize();
+      const averageTime = channelList.members.reduce((acc, data) => acc + data.totalTime, 0) / channelList.members.size;
+      const variance =
+        channelList.members.reduce((acc, data) => acc + Math.pow(data.totalTime - averageTime, 2), 0) /
+        channelList.members.size;
 
       const embed = new EmbedBuilder()
         .setTitle('Presence List')
@@ -94,13 +100,26 @@ const command: Command = {
           { name: 'Total Members', value: channel.members.size.toString(), inline: true },
           { name: 'Total Time', value: `${presenceTime}`, inline: true },
           {
-            name: 'Members',
-            value: channelList.members
-              .map((data, memberId) => `<@${memberId}> - ${moment.duration(data.totalTime).humanize()}`)
-              .join('\n')
+            name: 'Average Time',
+            value: moment.duration(averageTime).humanize()
+          },
+          {
+            name: 'Difference from Average Time',
+            value: moment.duration(Math.sqrt(variance)).humanize()
           }
         );
-      await interaction.editReply({ embeds: [embed] });
+      const csvFile = `Id,Username,Total Time,Joined Times,Left Times\n${channelList.members
+        .map(
+          (data, memberId) =>
+            `${memberId},${interaction.guild?.members.cache.get(memberId)?.user.username || 'Not Found'},${moment.duration(data.totalTime).humanize()},${data.joinedTimes},${data.leftTimes}`
+        )
+        .join('\n')}`;
+
+      const attachment = new AttachmentBuilder(Buffer.from(csvFile))
+        .setName('presence.csv')
+        .setDescription('Presence list in CSV format');
+
+      await interaction.editReply({ embeds: [embed], files: [attachment] });
       client.presenceLists.delete(channel.id);
     }
 

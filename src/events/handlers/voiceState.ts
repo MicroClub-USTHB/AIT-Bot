@@ -12,7 +12,7 @@ const event: Event<'voiceStateUpdate'> = {
     const oldChannelList = oldState.channelId ? client.presenceLists.get(oldState.channelId) : null;
     const newChannelList = newState.channelId ? client.presenceLists.get(newState.channelId) : null;
 
-    if (oldChannelList) {
+    if (oldChannelList && oldState.member) {
       const memberData = oldState.member ? oldChannelList.members.get(oldState.member.id) : null;
       if (memberData) {
         memberData.lastLeftTime = new Date();
@@ -25,14 +25,14 @@ const event: Event<'voiceStateUpdate'> = {
       }
     }
 
-    if (newChannelList) {
-      const memberData = newState.member ? newChannelList.members.get(newState.member.id) : null;
+    if (newChannelList && newState.member) {
+      const memberData = newChannelList.members.get(newState.member.id);
       if (memberData) {
         memberData.lastJoinedTime = new Date();
         memberData.lastLeftTime = null;
         memberData.joinedTimes++;
-      } else if (newState.member) {
-        const membereData = {
+      } else {
+        const memberData = {
           memberId: newState.member.id,
           lastJoinedTime: new Date(),
           lastLeftTime: null,
@@ -40,7 +40,7 @@ const event: Event<'voiceStateUpdate'> = {
           joinedTimes: 1,
           leftTimes: 0
         };
-        newChannelList.members.set(newState.member.id, membereData);
+        newChannelList.members.set(memberData.memberId, memberData);
       }
     }
 
