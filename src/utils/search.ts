@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { PackageData, w3schoolsData } from '../@types/searchData';
+import { GithubRepository, GithubUser, PackageData, w3schoolsData } from '../@types/searchData';
 import { load } from 'cheerio';
 
 class Search {
@@ -154,6 +154,114 @@ class Search {
       .toArray() as w3schoolsData[];
 
     return results;
+  }
+
+  static async githubUserAutoComplete(name: string): Promise<string[]> {
+    const data = await axios
+      .get(`https://api.github.com/search/users?q=${name}&per_page=25`)
+      .then(res => res.data)
+      .catch(() => null);
+
+    if (!data) return [];
+    const names = data.items.map((d: { login: string }) => d.login) as string[];
+    return names.sort();
+  }
+
+  static async githubRepositoryGlobalAutoComplete(name: string): Promise<string[]> {
+    const data = await axios
+      .get(`https://api.github.com/search/repositories?q=${name}&per_page=25`)
+      .then(res => res.data)
+      .catch(() => null);
+
+    if (!data) return [];
+    const names = data.items.map((d: { full_name: string }) => d.full_name) as string[];
+    return names.sort();
+  }
+
+  static async githubRepositoryByUserAutoComplete(username: string, name: string): Promise<string[]> {
+    const data = await axios
+      .get(`https://api.github.com/users/${username}/repos`)
+      .then(res => res.data)
+      .catch(() => null);
+
+    if (!data) return [];
+    console.log(name);
+    const names = data.map((d: { full_name: string }) => d.full_name) as string[];
+    return names.filter(n => n.toLowerCase().includes(name.toLowerCase())).sort();
+  }
+
+  static async githubUser(name: string): Promise<GithubUser | null> {
+    const data = await axios
+      .get(`https://api.github.com/users/${name}`)
+      .then(res => res.data)
+      .catch(() => null);
+
+    if (!data || data.message) return null;
+
+    const starredRepos = await axios
+      .get(`https://api.github.com/users/${name}/starred`)
+      .then(res => res.data)
+      .catch(() => null);
+
+    const repos = await axios
+      .get(`https://api.github.com/users/${name}/repos`)
+      .then(res => res.data)
+      .catch(() => null);
+
+    const stars = repos.reduce((acc: number, repo: { stargazers_count: number }) => acc + repo.stargazers_count, 0);
+
+    const user: GithubUser = {
+      username: data.login,
+      name: data.name,
+      bio: data.bio,
+      url: data.html_url,
+      avatar: data.avatar_url,
+      followers: data.followers,
+      following: data.following,
+      repositories: data.public_repos,
+      creationDate: new Date(data.created_at),
+      starred: starredRepos?.length,
+      stars
+    };
+
+    return user;
+  }
+
+  static async githubRepository(fullName: string): Promise<GithubRepository | null> {
+    const data = await axios
+      .get(`https://api.github.com/repos/${fullName}`)
+      .then(res => res.data)
+      .catch(() => null);
+
+    if (!data || data.message) return null;
+
+    const languages = await axios
+      .get(data.languages_url)
+      .then(res => res.data)
+      .catch(() => null);
+
+    const total = Object.values<number>(languages).reduce((acc: number, value: number) => acc + value, 0);
+
+    const formattedLanguages = Object.entries<number>(languages).map(([name, value]) => ({
+      name,
+      percentage: (value / total) * 100
+    }));
+
+    const repository: GithubRepository = {
+      name: data.full_name,
+      description: data.description,
+      url: data.html_url,
+      stars: data.stargazers_count,
+      forks: data.forks,
+      issues: data.open_issues,
+      username: data.owner.login,
+      creationDate: new Date(data.created_at),
+      firstPush: new Date(data.pushed_at),
+      lastUpdate: new Date(data.updated_at),
+      license: data.license?.name || null,
+      languages: formattedLanguages
+    };
+    return repository;
   }
 }
 

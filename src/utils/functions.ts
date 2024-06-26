@@ -1,3 +1,5 @@
+import { DiscordTimestampStyle } from '../@types/enums';
+
 export function formatString(str: string, record: Record<string, string>): string {
   return str.replace(/\{(\w+)\}/g, (match, key) => {
     return record[key] || match;
@@ -16,4 +18,9 @@ export function camelCase(str: string, firstCapital = false): string {
       return index === 0 && !firstCapital ? letter.toLowerCase() : letter.toUpperCase();
     })
     .replace(/\s+/g, '');
+}
+
+export function datetoDiscordTimestamp(date: Date, type = DiscordTimestampStyle.Default): string {
+  const timestamp = date.getTime();
+  return `<t:${Math.floor(timestamp / 1000)}${type === DiscordTimestampStyle.Default ? '' : `:${type}`}>`;
 }

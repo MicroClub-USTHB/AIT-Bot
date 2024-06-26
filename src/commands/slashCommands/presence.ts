@@ -3,6 +3,7 @@ import { Command } from '../../@types/command';
 import { CommandTypes } from '../../@types/enums';
 import { ChannelPresenceList, MemberPresenceData } from '../../@types/client';
 import moment from 'moment';
+
 const command: Command = {
   type: CommandTypes.SlashCommand,
   data: new SlashCommandBuilder()
@@ -35,6 +36,7 @@ const command: Command = {
     .setDMPermission(false),
   defer: true,
   ephemeral: true,
+  devOnly: true,
 
   execute: async (client, interaction) => {
     const channel = interaction.options.getChannel<ChannelType.GuildVoice>('channel', true);
@@ -43,7 +45,7 @@ const command: Command = {
 
     if (subcommand === 'start') {
       if (client.presenceLists.has(channel.id)) {
-        await interaction.editReply(`Presence list for ${channel.name} already exists`);
+        await interaction.editReply(`Presence list for ${channel.name} already exists,stop it first`);
         return false;
       }
 
@@ -97,21 +99,21 @@ const command: Command = {
         .setTitle('Presence List')
         .setDescription(`Presence list for ${channel}`)
         .addFields(
-          { name: 'Total Members', value: channel.members.size.toString(), inline: true },
+          { name: 'Total Members', value: channelList.members.size.toString(), inline: true },
           { name: 'Total Time', value: `${presenceTime}`, inline: true },
           {
             name: 'Average Time',
-            value: moment.duration(averageTime).humanize()
+            value: moment.utc(averageTime).format('HH:mm:ss.SSS')
           },
           {
             name: 'Difference from Average Time',
-            value: moment.duration(Math.sqrt(variance)).humanize()
+            value: moment.utc(variance).format('HH:mm:ss.SSS')
           }
         );
       const csvFile = `Id,Username,Total Time,Joined Times,Left Times\n${channelList.members
         .map(
           (data, memberId) =>
-            `${memberId},${interaction.guild?.members.cache.get(memberId)?.user.username || 'Not Found'},${moment.duration(data.totalTime).humanize()},${data.joinedTimes},${data.leftTimes}`
+            `${memberId},${interaction.guild?.members.cache.get(memberId)?.user.username || 'Not Found'},${moment.utc(data.totalTime).format('HH:mm:ss.SSS')},${data.joinedTimes},${data.leftTimes}`
         )
         .join('\n')}`;
 
