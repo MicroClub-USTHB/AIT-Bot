@@ -1,17 +1,19 @@
 {
   "name": "ait-bot",
-  "version": "0.5.0",
+  "version": "1.0.0",
+  "types": "dist/index.d.ts",
   "description": "MicroClub IT Section Bot",
   "main": "dist/index.js",
   "scripts": {
-    "start": "node dist/index.js",
+    "start": "npm run compile && pm2 start ecosystem.config.json",
+    "start:node": "node dist/index.js",
+    "start:bun": "bun dist/index.js",
     "dev:ts": "nodemon src/index.ts",
-    "bun": "bun dist/index.js",
     "bun:ts": "bun src/index.ts",
-    "clean": "rmdir /s /q dist",
+    "clean": "rimraf dist",
     "compile": "tsc",
-    "build": "npm run clean | npm run compile && npm run start",
-    "build:bun": "npm run clean | npm run compile && npm run bun",
+    "build:node": "npm run clean && npm run compile && npm run start:node",
+    "build:bun": "npm run clean && npm run compile && npm run start:bun",
     "format": "prettier --write src/**/*.ts",
     "lint:check": "eslint . --ext .ts --ignore-path .gitignore",
     "lint:fix": "npm run lint:check -- --fix"
@@ -41,7 +43,11 @@
     "@types/node": "^20.12.11",
     "@typescript-eslint/eslint-plugin": "^7.11.0",
     "@typescript-eslint/parser": "^7.11.0",
+    "bun": "^1.1.17",
     "eslint": "^8.57.0",
-    "prettier": "^3.3.0"
+    "nodemon": "^3.1.4",
+    "prettier": "^3.3.0",
+    "rimraf": "^5.0.7",
+    "typescript": "^5.5.2"
   }
 }

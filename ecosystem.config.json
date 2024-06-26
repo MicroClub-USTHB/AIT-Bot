@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json.schemastore.org/pm2-ecosystem",
+
+  "apps": [
+    {
+      "name": "AIT",
+      "script": "./dist/index.js",
+      "exec_mode": "cluster",
+      "watch": true,
+      "instances": 1
+    }
+  ]
+}

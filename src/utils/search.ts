@@ -190,25 +190,31 @@ class Search {
     return names.filter(n => n.toLowerCase().includes(name.toLowerCase())).sort();
   }
 
-  static async githubUser(name: string): Promise<GithubUser | null> {
+  static async githubUser(username: string): Promise<GithubUser | null> {
     const data = await axios
-      .get(`https://api.github.com/users/${name}`)
+      .get(`https://api.github.com/users/${username}`)
       .then(res => res.data)
       .catch(() => null);
 
     if (!data || data.message) return null;
 
     const starredRepos = await axios
-      .get(`https://api.github.com/users/${name}/starred`)
+      .get(`https://api.github.com/users/${username}/starred`)
       .then(res => res.data)
       .catch(() => null);
 
     const repos = await axios
-      .get(`https://api.github.com/users/${name}/repos`)
+      .get(`https://api.github.com/users/${username}/repos`)
       .then(res => res.data)
       .catch(() => null);
 
     const stars = repos.reduce((acc: number, repo: { stargazers_count: number }) => acc + repo.stargazers_count, 0);
+
+
+    const contributions = await axios
+      .get(`https://github-contributions-api.deno.dev/${username}.json`)
+      .then(res => res.data)
+      .catch(() => null);
 
     const user: GithubUser = {
       username: data.login,
@@ -221,7 +227,8 @@ class Search {
       repositories: data.public_repos,
       creationDate: new Date(data.created_at),
       starred: starredRepos?.length,
-      stars
+      stars: stars,
+      contributions: contributions?.totalContributions || 0
     };
 
     return user;

@@ -80,6 +80,11 @@ const command: Command = {
             inline: true
           },
           {
+            name: 'Starred Repositories Count',
+            value: userData.starred?.toString() || 'n/a',
+            inline: true
+          },
+          {
             name: 'Public Repositories',
             value: userData.repositories.toString(),
             inline: true
@@ -90,10 +95,11 @@ const command: Command = {
             inline: true
           },
           {
-            name: 'Starred Repositories Count',
-            value: userData.starred?.toString() || 'n/a',
+            name: "Contributions",
+            value: userData.contributions.toString(),
             inline: true
           }
+          
         )
         .setFooter({ text: `Joined Github on` })
         .setTimestamp(userData.creationDate);

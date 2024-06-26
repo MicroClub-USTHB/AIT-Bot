@@ -39,6 +39,7 @@ declare interface GithubUser {
   creationDate: Date;
   starred: number | null;
   stars: number | null;
+  contributions: number;
 }
 
 declare interface w3schoolsData {
