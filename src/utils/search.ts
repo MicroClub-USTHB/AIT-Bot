@@ -210,7 +210,6 @@ class Search {
 
     const stars = repos.reduce((acc: number, repo: { stargazers_count: number }) => acc + repo.stargazers_count, 0);
 
-
     const contributions = await axios
       .get(`https://github-contributions-api.deno.dev/${username}.json`)
       .then(res => res.data)

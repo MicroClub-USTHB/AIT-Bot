@@ -23,7 +23,6 @@ const event: Event<'interactionCreate'> = {
 
     const choices = data.map(d => ({ name: d, value: d })).slice(0, 25);
 
-
     await interaction.respond(choices);
 
     return true;

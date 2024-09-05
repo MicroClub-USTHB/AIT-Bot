@@ -1,4 +1,4 @@
-import { Colors, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import { Colors, EmbedBuilder, InteractionContextType, SlashCommandBuilder } from 'discord.js';
 import { Command } from '../../@types/command';
 import { CommandTypes } from '../../@types/enums';
 import { Search } from '../../utils/search';
@@ -33,11 +33,12 @@ const command: Command = {
           option.setName('name').setDescription('The name of the cargo crate').setRequired(true).setAutocomplete(true)
         )
     )
-    .setDMPermission(false),
+    .setContexts(InteractionContextType.Guild),
   defer: true,
 
   execute: async (_client, interaction) => {
-    const subcommand = interaction.options.getSubcommand() as 'npm' | 'pypi' | 'cargo';
+    const subcommand = interaction.options.getSubcommand(true) as 'npm' | 'pypi' | 'cargo';
+
     const packageName = interaction.options.getString('name') as string;
     let packageInfo: PackageData | null = null;
     let color = null;

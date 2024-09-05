@@ -1,8 +1,8 @@
-import { ChannelType, SlashCommandBuilder, Collection, EmbedBuilder, AttachmentBuilder } from 'discord.js';
+import { ChannelType, SlashCommandBuilder, Collection, EmbedBuilder, AttachmentBuilder, InteractionContextType } from 'discord.js';
 import { Command } from '../../@types/command';
 import { CommandTypes } from '../../@types/enums';
 import { ChannelPresenceList, MemberPresenceData } from '../../@types/client';
-import moment from 'moment';
+import { formatDuration } from '../../utils/functions';
 
 const command: Command = {
   type: CommandTypes.SlashCommand,
@@ -17,7 +17,7 @@ const command: Command = {
           option
             .setName('channel')
             .setDescription('Channel to start presence list')
-            .setRequired(true)
+            .setRequired(false)
             .addChannelTypes(ChannelType.GuildVoice)
         )
     )
@@ -29,17 +29,28 @@ const command: Command = {
           option
             .setName('channel')
             .setDescription('Channel to stop presence list')
-            .setRequired(true)
+            .setRequired(false)
             .addChannelTypes(ChannelType.GuildVoice)
         )
     )
-    .setDMPermission(false),
+    .setContexts(InteractionContextType.Guild),
   defer: true,
   ephemeral: true,
   devOnly: true,
 
   execute: async (client, interaction) => {
-    const channel = interaction.options.getChannel<ChannelType.GuildVoice>('channel', true);
+    const member = await interaction.guild?.members
+      .fetch({
+        user: interaction.user.id
+      })
+      .catch(() => null);
+    const channel = interaction.options.getChannel<ChannelType.GuildVoice>('channel') || member?.voice.channel;
+
+    if (!channel) {
+      await interaction.editReply('Channel not found');
+      return false;
+    }
+
     if (channel.partial) await channel.fetch();
     const subcommand = interaction.options.getSubcommand();
 
@@ -89,7 +100,7 @@ const command: Command = {
 
       channelList.members.sort((a, b) => b.totalTime - a.totalTime || b.joinedTimes - a.joinedTimes);
 
-      const presenceTime = moment.duration(endTime.getTime() - channelList.startTime.getTime()).humanize();
+      const presenceTime = formatDuration(endTime.getTime() - channelList.startTime.getTime());
       const averageTime = channelList.members.reduce((acc, data) => acc + data.totalTime, 0) / channelList.members.size;
       const variance =
         channelList.members.reduce((acc, data) => acc + Math.pow(data.totalTime - averageTime, 2), 0) /
@@ -103,25 +114,43 @@ const command: Command = {
           { name: 'Total Time', value: `${presenceTime}`, inline: true },
           {
             name: 'Average Time',
-            value: moment.utc(averageTime).format('HH:mm:ss.SSS')
+            value: formatDuration(averageTime)
           },
           {
             name: 'Difference from Average Time',
-            value: moment.utc(variance).format('HH:mm:ss.SSS')
+            value: formatDuration(variance)
           }
         );
-      const csvFile = `Id,Username,Total Time,Joined Times,Left Times\n${channelList.members
+
+      let i = 1;
+      const csvFile = `N,Id,Username,Total_Time,Joined_Times,Left_Times\n${channelList.members
         .map(
           (data, memberId) =>
-            `${memberId},${interaction.guild?.members.cache.get(memberId)?.user.username || 'Not Found'},${moment.utc(data.totalTime).format('HH:mm:ss.SSS')},${data.joinedTimes},${data.leftTimes}`
+            `${i++},${memberId},${interaction.guild?.members.cache.get(memberId)?.user.username || 'Not Found'},${formatDuration(data.totalTime)},${data.joinedTimes},${data.leftTimes}`
         )
         .join('\n')}`;
 
-      const attachment = new AttachmentBuilder(Buffer.from(csvFile))
+      const jsonFile = JSON.stringify(
+        channelList.members.map(data => ({
+          id: data.memberId,
+          username: interaction.guild?.members.cache.get(data.memberId)?.user.username || 'Not Found',
+          time: formatDuration(data.totalTime),
+          joined: data.joinedTimes,
+          left: data.leftTimes
+        })),
+        null,
+        2
+      );
+
+      const csvAttachment = new AttachmentBuilder(Buffer.from(csvFile))
         .setName('presence.csv')
         .setDescription('Presence list in CSV format');
 
-      await interaction.editReply({ embeds: [embed], files: [attachment] });
+      const jsonAttachment = new AttachmentBuilder(Buffer.from(jsonFile))
+        .setName('presence.json')
+        .setDescription('Presence list in JSON format');
+
+      await interaction.editReply({ embeds: [embed], files: [csvAttachment, jsonAttachment] });
       client.presenceLists.delete(channel.id);
     }
 

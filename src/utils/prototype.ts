@@ -1,4 +1,3 @@
-import { DiscordTimestampStyle } from '../@types/enums';
 import { camelCase, formatString, titleCase } from './functions';
 
 String.prototype.format = function (record: Record<string, string>): string {
@@ -12,5 +11,3 @@ String.prototype.toTitleCase = function (): string {
 String.prototype.toCamelCase = function (firstCapital = false): string {
   return camelCase(this.toString(), firstCapital);
 };
-
-

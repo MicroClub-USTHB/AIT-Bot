@@ -1,4 +1,4 @@
-declare interface PackageData {
+export declare interface PackageData {
   name: string;
   description: string;
   version: string;
@@ -7,7 +7,7 @@ declare interface PackageData {
   icon: string;
 }
 
-declare interface GithubRepository {
+export declare interface GithubRepository {
   name: string;
   description: string | null;
   url: string;
@@ -27,7 +27,7 @@ declare interface GithubRepository {
     | null;
 }
 
-declare interface GithubUser {
+export declare interface GithubUser {
   username: string;
   name: string | null;
   bio: string | null;
@@ -42,7 +42,7 @@ declare interface GithubUser {
   contributions: number;
 }
 
-declare interface w3schoolsData {
+export declare interface w3schoolsData {
   title: string;
   description: string;
   url: string;
@@ -50,7 +50,7 @@ declare interface w3schoolsData {
   snippet?: string;
 }
 
-declare interface PrayerTime {
+export declare interface PrayerTime {
   state: string;
   country: string;
   prayers: {
@@ -63,4 +63,3 @@ declare interface PrayerTime {
   };
 }
 
-export { PackageData, w3schoolsData, GithubRepository, GithubUser, PrayerTime };

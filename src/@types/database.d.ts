@@ -1,6 +1,6 @@
-declare interface Guild {
+declare interface User {
   _id: string;
-  prefix: string;
+  points: number;
 }
 
 declare interface RegisterData {

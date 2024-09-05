@@ -1,3 +1,3 @@
-import { GuildModel } from './guild';
+import { UserModel } from './user';
 
-export { GuildModel };
+export { UserModel };
