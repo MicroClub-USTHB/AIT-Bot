@@ -1,104 +1,95 @@
+import { GuildMember, VoiceState } from 'discord.js';
 import { Event } from '../../@types/event';
 import {
+  ChannelPresenceList,
   MemberPresenceData,
   MemberVoiceState,
-  MemberVoiceStateData,
   MemberVoiceStateType
 } from '../../@types/presence';
 
 const event: Event<'voiceStateUpdate'> = {
   name: 'voiceStateUpdate',
-  // eslint-disable-next-line complexity
   run: async (client, oldState, newState) => {
-    if (oldState.channel?.partial) await oldState.channel.fetch();
-    if (newState.channel?.partial) await newState.channel.fetch();
-    //if (oldState.member?.partial) await oldState.member.fetch();
-    if (newState.member?.partial) await newState.member.fetch();
+    // Fetch partial states
+    await Promise.all([
+      oldState.channel?.partial && oldState.channel.fetch(),
+      newState.channel?.partial && newState.channel.fetch(),
+      newState.member?.partial && newState.member.fetch()
+    ]);
 
     const isInSameChannel = oldState.channelId === newState.channelId;
-
-    //if (isInSameChannel) return false;
-
     const oldChannelList = oldState.channelId ? client.presenceLists.get(oldState.channelId) : null;
     const newChannelList = newState.channelId ? client.presenceLists.get(newState.channelId) : null;
 
-    if (isInSameChannel) {
+    // Handle same channel updates
+    if (isInSameChannel && newState.member) {
       const member = newState.member;
-      if (!member) return false;
       const memberData = newChannelList?.members.get(member.id);
       if (!memberData) return false;
 
       const memberLastState = memberData.states[memberData.states.length - 1].state;
+      const memberNewState = getUpdatedMemberState(member.voice, memberLastState);
 
-      let memberNewState = memberLastState;
-      if (member.voice.serverDeaf) {
-        memberNewState = MemberVoiceState.ServerDeaf;
-      } else if (member.voice.selfDeaf) {
-        memberNewState = MemberVoiceState.SelfDeaf;
-      } else if (member.voice.serverMute) {
-        memberNewState = MemberVoiceState.ServerMute;
-      } else if (member.voice.selfMute) {
-        memberNewState = MemberVoiceState.SelfMute;
-      }
       if (memberNewState === memberLastState) return false;
 
-      const memberNewStateData: MemberVoiceStateData = {
+      memberData.states.push({
         type: MemberVoiceStateType.Update,
         state: memberNewState,
         time: new Date()
-      };
-
-      memberData.states.push(memberNewStateData);
+      });
 
       return true;
     }
 
+    // Handle member leaving the old channel
     if (oldChannelList && oldState.member) {
-      const member = oldState.member;
-      const memberData = oldChannelList?.members.get(member.id);
-      if (memberData) {
-        const memberLastState = memberData.states[memberData.states.length - 1].state;
-
-        const memberNewStateData: MemberVoiceStateData = {
-          type: MemberVoiceStateType.Leave,
-          state: memberLastState,
-          time: new Date()
-        };
-
-        memberData.states.push(memberNewStateData);
-      }
+      updateMemberStateOnLeave(oldChannelList, oldState.member);
     }
 
+    // Handle member joining the new channel
     if (newChannelList && newState.member) {
-      const member = newState.member;
-
-      let memberState = MemberVoiceState.Speaking;
-      if (member.voice.serverDeaf) {
-        memberState = MemberVoiceState.ServerDeaf;
-      } else if (member.voice.selfDeaf) {
-        memberState = MemberVoiceState.SelfDeaf;
-      } else if (member.voice.serverMute) {
-        memberState = MemberVoiceState.ServerMute;
-      } else if (member.voice.selfMute) {
-        memberState = MemberVoiceState.SelfMute;
-      }
-
-      const membereData: MemberPresenceData = {
-        memberId: member.id,
-        states: [
-          {
-            type: MemberVoiceStateType.Join,
-            state: memberState,
-            time: new Date()
-          }
-        ]
-      };
-
-      newChannelList.members.set(member.id, membereData);
+      updateMemberStateOnJoin(newChannelList, newState.member);
     }
 
     return true;
   }
 };
+
+// Utility function to determine the updated voice state
+function getUpdatedMemberState(voice: VoiceState, currentState: MemberVoiceState) {
+  if (voice.serverDeaf) return MemberVoiceState.ServerDeaf;
+  if (voice.selfDeaf) return MemberVoiceState.SelfDeaf;
+  if (voice.serverMute) return MemberVoiceState.ServerMute;
+  if (voice.selfMute) return MemberVoiceState.SelfMute;
+  return currentState;
+}
+
+// Handle member leaving a channel
+function updateMemberStateOnLeave(channelList: ChannelPresenceList, member: GuildMember) {
+  const memberData = channelList.members.get(member.id);
+  if (memberData) {
+    memberData.states.push({
+      type: MemberVoiceStateType.Leave,
+      state: memberData.states[memberData.states.length - 1].state,
+      time: new Date()
+    });
+  }
+}
+
+// Handle member joining a channel
+function updateMemberStateOnJoin(channelList: ChannelPresenceList, member: GuildMember) {
+  const memberState = getUpdatedMemberState(member.voice, MemberVoiceState.Speaking);
+  const memberData: MemberPresenceData = {
+    memberId: member.id,
+    states: [
+      {
+        type: MemberVoiceStateType.Join,
+        state: memberState,
+        time: new Date()
+      }
+    ]
+  };
+  channelList.members.set(member.id, memberData);
+}
 
 export default event;
