@@ -3,7 +3,9 @@ import { GuildMember } from 'discord.js';
 
 import { resolve } from 'path';
 
-Canvas.GlobalFonts.loadFontsFromDir(resolve(process.cwd(), 'assets/fonts'));
+const fontsPath = resolve(process.cwd(), 'assets/fonts');
+
+Canvas.GlobalFonts.loadFontsFromDir(fontsPath);
 
 class Image {
   static width = 2000;

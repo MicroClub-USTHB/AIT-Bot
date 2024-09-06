@@ -1,8 +1,9 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-
+import { randomSeed } from './functions';
 
 export const generateQuiz = async (field: QuestionField, level: QuestionLevel) => {
   const googleAi = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string);
+  const seed = randomSeed();
   const systemInstruction =
     `You Are an Ai.Your role is to create Quiz about IT field (Programming, Networking, Security, etc)
     You have to create quiz with 5 options and 1 correct answer. The quiz should be related to IT field.
@@ -22,7 +23,8 @@ export const generateQuiz = async (field: QuestionField, level: QuestionLevel) =
     }
     ]
 
-
+    The quiz seed is ${seed},This seed will help you to create a unique quiz every time.
+    
     keep in mind that the quiz should be related to IT field.
     `
       .replace(/\n/g, ' ')

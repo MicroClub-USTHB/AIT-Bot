@@ -15,19 +15,19 @@ importers:
         specifier: ^0.14.1
         version: 0.14.1
       '@napi-rs/canvas':
-        specifier: ^0.1.53
+        specifier: ^0.1.55
         version: 0.1.55
       axios:
-        specifier: ^1.7.2
+        specifier: ^1.7.7
         version: 1.7.7
       chalk:
         specifier: ^4.1.2
         version: 4.1.2
       cheerio:
-        specifier: ^1.0.0-rc.12
+        specifier: ^1.0.0
         version: 1.0.0
       discord.js:
-        specifier: ^14.15.2
+        specifier: ^14.16.1
         version: 14.16.1
       dotenv:
         specifier: ^16.4.5
@@ -42,7 +42,7 @@ importers:
         specifier: ^2.30.1
         version: 2.30.1
       mongoose:
-        specifier: ^8.3.4
+        specifier: ^8.6.1
         version: 8.6.1
       node-schedule:
         specifier: ^2.1.1
@@ -58,19 +58,19 @@ importers:
         specifier: ^1.5.8
         version: 1.5.8
       '@types/node':
-        specifier: ^20.12.11
+        specifier: ^20.16.5
         version: 20.16.5
       '@types/node-schedule':
         specifier: ^2.1.7
         version: 2.1.7
       '@typescript-eslint/eslint-plugin':
-        specifier: ^7.11.0
+        specifier: ^7.18.0
         version: 7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4)
       '@typescript-eslint/parser':
-        specifier: ^7.11.0
+        specifier: ^7.18.0
         version: 7.18.0(eslint@8.57.0)(typescript@5.5.4)
       bun:
-        specifier: ^1.1.17
+        specifier: ^1.1.26
         version: 1.1.26
       eslint:
         specifier: ^8.57.0
@@ -79,13 +79,13 @@ importers:
         specifier: ^3.1.4
         version: 3.1.4
       prettier:
-        specifier: ^3.3.0
+        specifier: ^3.3.3
         version: 3.3.3
       rimraf:
-        specifier: ^5.0.7
+        specifier: ^5.0.10
         version: 5.0.10
       typescript:
-        specifier: ^5.5.2
+        specifier: ^5.5.4
         version: 5.5.4
 
 packages:

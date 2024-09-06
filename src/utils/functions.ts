@@ -36,3 +36,20 @@ export function randomNumber(min: number, max: number): number {
 export function randomElement<T>(array: T[]): T {
   return array[Math.floor(Math.random() * array.length)];
 }
+
+export function shuffleArray<T>(array: T[]): T[] {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+export function removeDuplicates<T>(array: T[]): T[] {
+  return [...new Set(array)];
+}
+
+export function randomSeed(base = 10): string {
+  return Math.random().toString(base).slice(2);
+}
