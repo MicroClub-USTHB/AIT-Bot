@@ -30,8 +30,9 @@ export const generateQuiz = async (field: QuestionField, level: QuestionLevel) =
       .replace(/\n/g, ' ')
       .replace(/ +/g, ' ');
 
+
   const geminiModel = googleAi.getGenerativeModel({
-    model: 'gemini-1.5-flash',
+    model: "gemini-1.5-turbo",
     systemInstruction
   });
 
